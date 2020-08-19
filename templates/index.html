@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>LOL Counter(롤카)</title>
+        <!--한글 초성검색하기위해-->
+        <script src="{{url_for('static', filename = 'Hangul.js')}}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+                crossorigin="anonymous"></script>
+
+    </head>
+    <style>
+        .card {
+            width: 80px;
+            height: 90px;
+            display: inline-grid;
+            child-align: middle;
+        }
+
+        .cards-box {
+            display: inline-block;
+            flex: 1 1 1px;
+            width: 880px
+        }
+
+        .img {
+            margin: auto;
+        }
+
+        .card-name {
+            display: inline-block;
+            text-align: center;
+        }
+
+        .rname {
+            font-size: 5px;
+            text-decoration: None;
+            color: black;
+        }
+
+        .search-box {
+            width: 240px;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .title-bar {
+            font-size: 25px;
+            margin-bottom: 15px;
+        }
+
+        .tier-box {
+            width: 450px;
+            display: inline-block;
+        }
+
+        .box-container {
+            display: inline-flex;
+            justify-content: space-between
+        }
+
+        .btn-group {
+            display: flex;
+            border: gray solid 1px;
+        }
+
+        .btn {
+            padding: 5px;
+            margin-inside: 2px;
+            width: 90px;
+            border: NONE;
+            font-size: 15px;
+            background-color: white;
+
+        }
+
+        .on {
+            background-color: gray;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:5000/champion_card_info",
+                data: {},
+                success: function (response) {
+                    let champion_info = response["info"]
+                    for (let i = 0; i < champion_info.length; i++) {
+                        let rname = champion_info[i]["rname"];
+                        let img = champion_info[i]["img"];
+                        let cname = champion_info[i]["cname"];
+                        let ename = champion_info[i]["ename"];
+                        let tempHTML = `<div class="card" id="${rname}">
+                                            <img onclick="show_detail('${ename}');" class="img" src="${img}">
+                                            <div class="card-name">
+                                                <a href='javascript:void(0);' onclick="show_detail('${ename}');"class="rname" cname="${cname}" href="#">${rname}</a>
+                                            </div>
+                                        </div>`
+                        $('#cards-box').append(tempHTML)
+                    }
+                }
+            })
+            $("#T-btn").addClass("on")
+        });
+
+        function filter() {
+            setTimeout(function () {
+                for (let i = 0; i < $('.card').length; i++) {
+                    $(".card").hide();
+                }
+                let search_data = $("#champion-search").val();
+                if (Hangul.isConsonantAll(search_data) === true) {
+                    console.log("자음으로 구성되어있다.")
+                    let cho = Hangul.disassemble(search_data);
+                    let sum = "";
+                    for (let i = 0; i < cho.length; i++) {
+                        sum = sum + cho[i];
+                    }
+                    search_data = sum;
+                }
+                console.log(search_data)
+                for (let i = 0; i < document.getElementsByClassName('rname').length; i++) {
+                    let cname = document.getElementsByClassName('rname').item(i).getAttribute("cname")
+                    let rname = document.getElementsByClassName('rname').item(i).textContent
+
+                    if (search_data === cname || search_data === rname) {
+                        //document.getElementsByClassName('card').item(i).setAttribute("hidden",false) 이거 안됨
+                        $(`#${rname}`).show()
+                    }
+                    if(rname.search(search_data)!==-1){
+                        console.log("포함된")
+                        $(`#${rname}`).show()
+                    }
+                }
+                if (search_data === "") {
+                    for (let i = 0; i < $('.card').length; i++) {
+                        $(".card").show();
+                    }
+                }
+            }, 1000);
+        }
+
+        function show_detail(name) {
+            window.location.assign("http://localhost:5000/detail?name=" + name)
+        }
+
+        function btn_click(id) {
+            if (document.getElementsByClassName("on") !== [])
+                $(".on").removeClass("on")
+            console.log(id + "클릭됨")
+            $(`#${id}`).addClass("on")
+        }
+    </script>
+    <body>
+        <div class="title-bar">LOL Counter ( 롤카 )</div>
+        <input class="search-box" id="champion-search" onkeyup="filter()" type="text" placeholder="챔피언을 입력하세요(초성 가능)">
+        <div class="box-container">
+            <div class="cards-box" id="cards-box"></div>
+            <div class="tier-box">
+                <div class="btn-group" id="btn-group">
+                    <button type="button" class="btn" id="TOP-btn" onclick="btn_click(this.id)">탑</button>
+                    <button type="button" class="btn" id="JUNGLE-btn" onclick="btn_click(this.id)">정글</button>
+                    <button type="button" class="btn" id="MID-btn" onclick="btn_click(this.id)">미드</button>
+                    <button type="button" class="btn" id="ADC-btn" onclick="btn_click(this.id)">바텀</button>
+                    <button type="button" class="btn" id="SUPPORT-btn" onclick="btn_click(this.id)">서포터</button>
+                </div>
+            </div>
+        </div>
+
+
+    </body>
+</html>

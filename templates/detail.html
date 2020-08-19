@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>title</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+              integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+              crossorigin="anonymous">
+
+    </head>
+    <style>
+        .Mcard{
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            get_data()
+        })
+
+        function get_data() {
+            let link = document.location.href;
+            let name = link.split("=")[1]
+
+            console.log(name);
+            $.ajax({
+                type: 'GET',
+                url: `/champion_card_info?name=${name}`,
+                data: {},
+                success: function (response) {
+                    let {cname, rname, ename, img} = response["info"]
+
+                    document.title = `${rname}의 상세 페이지 - 카운터`;
+
+                    let tempHtml = `<div class="jumbotron jumbotron-fluid" style="height: 300px">
+                                      <div class="container">
+                                        <img style="width: 100px;height:100px;" src="${img}">
+                                        <h1 class="display-4">${rname}</h1>
+                                        <p class="lead">간단설명</p>
+                                      </div>
+                                    </div>`
+                    $.ajax({
+                        type: "GET",
+                        url: `http://localhost:5000/counter?name=${ename}`,
+                        data: {},
+                        success: function (response) {
+                            let counter_list = response["info"];
+                            let tempHtml_counter;
+                            for(let i=0;i<counter_list.length;i++){
+                                let counter_one = counter_list[i];
+                                let {rname,img,ratio} = counter_one;
+                                tempHtml_counter = `<div style="width:auto;text-align: center;margin: 20px;">
+                                                        <img style="width: auto; " src="${img}">
+                                                        <div >
+                                                            <h5 >${rname}</h5>
+                                                            <p>승률 : ${ratio}</p>
+                                                        </div>
+                                                    </div>`
+                                $("#counter-card").append(tempHtml_counter)
+                            }
+
+                        }
+                    })
+                    $("#champion-card").append(tempHtml)
+                }
+            });
+
+        }
+
+    </script>
+    <body>
+        <h></h>
+        <div id="champion-card">
+
+        </div>
+        <div id="counter-card" class="Mcard">
+
+        </div>
+
+    </body>
+</html>
